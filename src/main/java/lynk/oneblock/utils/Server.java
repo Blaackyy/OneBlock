@@ -11,11 +11,14 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 import static lynk.oneblock.server.GameObject.configFileLocation;
@@ -181,10 +184,19 @@ public class Server {
      * @return ActionResult indicating the result of the interaction. Returns FAIL if the player tries to place a block
      * at the restricted positions, otherwise PASS to allow normal interaction.
      */
+
+    private static final List<Direction> allowedSides = Arrays.asList(Direction.DOWN, Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH);
+
     public static ActionResult interact(PlayerEntity playerEntity, World world, Hand hand, BlockHitResult blockHitResult) {
-        // Don't allow block placement at OneBlock position
+        // Don't allow block placement above the OneBlock position
         if (blockHitResult.getBlockPos().equals(GameObject.getOneBlockPos())) {
-            playerEntity.sendMessage(Text.of("Not allowed to place blocks at the One Block position."), true);
+            // Check first if maybe we're clicking the sides of it
+            if (allowedSides.contains(blockHitResult.getSide())) return ActionResult.PASS;
+
+            playerEntity.sendMessage(
+                    PrettyMessages.prettyError("Not allowed to place blocks at the One Block position."),
+                    true
+            );
             return ActionResult.FAIL;
         }
 
